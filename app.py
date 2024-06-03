@@ -4,8 +4,10 @@ from pypdf import PdfReader
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from openai import OpenAI
+from firecrawl import FirecrawlApp
 
 client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+search_client = FirecrawlApp(api_key=os.environ['FIRECRAWL_API_KEY'])
 
 def get_text_from_document(file):
     pdf = PdfReader(file)
@@ -15,10 +17,9 @@ def get_text_from_document(file):
     return text
 
 def get_text_from_url(url):
-    page = urlopen(url)
-    soup = BeautifulSoup(page)
-    fetched_text = ' '.join(map(lambda p: p.text, soup.find_all('p')))
-    return fetched_text
+    return search_client.scrape_url(
+        url=url
+    )['content']
 
 def get_faqs(content):
     chat_completion = client.chat.completions.create(
